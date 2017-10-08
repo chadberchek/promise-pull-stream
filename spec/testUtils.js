@@ -23,17 +23,12 @@ async function nextTick() {
     await new Promise(resolve => process.nextTick(resolve));
 }
 
-async function expectFulfilled(promise, expectedValue) {
-    const v = await promise;
-    expect(v).toBe(expectedValue);
-}
-
-async function expectRejected(promise, expectedReason) {
+async function rejected(promise) {
     try {
         const v = await promise;
-        fail(`Expected promise to reject ${String(expectedReason)} but fulfilled ${String(v)}`);
+        fail(`Expected promise to reject but fulfilled ${String(v)}`);
     } catch (reason) {
-        expect(reason).toBe(expectedReason);
+        return reason;
     }
 }
 
@@ -62,21 +57,19 @@ class PromiseFactoryStub {
     }
 
     resolve(promiseIndex, value) {
-        if (typeof value === 'undefined') value = this.fulfilledValue(promiseIndex);
         this._invertedPromises[promiseIndex].resolve(value);
     }
 
     reject(promiseIndex, reason) {
-        if (typeof reason === 'undefined') reason = this.rejectedReason(promiseIndex);
         this._invertedPromises[promiseIndex].reject(reason);
     }
 
     resolveAll() {
-        this._invertedPromises.forEach((p, i) => p.resolve(this.fulfilledValue(i)));
+        this._invertedPromises.forEach((p, i) => p.resolve(i));
     }
 
     rejectAll() {
-        this._invertedPromises.forEach((p, i) => p.reject(this.rejectedReason(i)));
+        this._invertedPromises.forEach((p, i) => p.reject(i));
     }
 
     async expectTimesCalled(expectedNumberOfCalls) {
@@ -88,21 +81,12 @@ class PromiseFactoryStub {
         await nextTick();
         expect(this.pendingPromises).toBe(expectedNumberOfPendingPromises);
     }
-
-    fulfilledValue(promiseIndex) {
-        return `fulfilled[${promiseIndex}]`;
-    }
-
-    rejectedReason(promiseIndex) {
-        return `rejected[${promiseIndex}]`;
-    }
 }
 
 module.exports = {
     createPendingPromiseArray,
     InvertedPromise,
     nextTick,
-    expectFulfilled,
-    expectRejected,
+    rejected,
     PromiseFactoryStub
 };

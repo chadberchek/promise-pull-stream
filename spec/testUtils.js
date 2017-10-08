@@ -2,20 +2,43 @@
 
 const {DONE} = require('../lib/base');
 
-function createPendingPromiseArray(count) {
+function createPromiseStubArray(count) {
     const a = new Array(count);
     for (let i = 0; i < count; i++) {
-        a[i] = new InvertedPromise();
+        a[i] = new PromiseStub(`PromiseStub[${i}]`);
     }
     return a;
 }
 
-class InvertedPromise {
-    constructor() {
+class PromiseStub {
+    constructor(name) {
+        this.name = name;
+        this.state = 'pending';
+
+        const settle = (newState, promiseCb) => {
+            if (this.state !== 'pending') {
+                fail(`invalid test: ${this.name} already ${this.state}`);
+            } else {
+                this.state = newState;
+                this.value = `${this.name}-${newState}`;
+                promiseCb(this.value);
+            }            
+        }
+
         this.promise = new Promise((res, rej) => {
-            this.resolve = res;
-            this.reject = rej;
+            this.resolve = () => settle('fulfilled', res);
+            this.reject = () => settle('rejected', rej);
         });
+    }
+
+    async wasFollowedBy(otherPromise) {
+        if (this.state === 'fulfilled') {
+            await expectFulfilled(otherPromise, this.value);
+        } else if (this.state === 'rejected') {
+            await expectRejected(otherPromise, this.value);
+        } else {
+            fail(`invalid test: resolve or reject has not been called on ${this.name}`);
+        }
     }
 }
 
@@ -24,14 +47,17 @@ async function nextTick() {
 }
 
 async function expectFulfilled(promise, expectedValue) {
-    const v = await promise;
-    expect(v).toBe(expectedValue);
+    try {
+        expect(await promise).toBe(expectedValue);
+    } catch (e) {
+        fail(`Expected promise to fulfill with "${String(expectedValue)}" but rejected with "${String(e)}"`);
+    }
 }
 
 async function expectRejected(promise, expectedReason) {
     try {
         const v = await promise;
-        fail(`Expected promise to reject ${String(expectedReason)} but fulfilled ${String(v)}`);
+        fail(`Expected promise to reject with "${String(expectedReason)}" but fulfilled with "${String(v)}"`);
     } catch (reason) {
         expect(reason).toBe(expectedReason);
     }
@@ -39,7 +65,7 @@ async function expectRejected(promise, expectedReason) {
 
 class PromiseFactoryStub {
     constructor(numberOfPromisesToReturn) {
-        this._invertedPromises = createPendingPromiseArray(numberOfPromisesToReturn);
+        this.promiseStub = createPromiseStubArray(numberOfPromisesToReturn);
         this.timesCalled = 0;
         this.pendingPromises = 0;
         this.promiseFactory = () => this._promiseFactory();
@@ -49,10 +75,10 @@ class PromiseFactoryStub {
         const decrementPending = () => this.pendingPromises--;
 
         let promise;
-        if (this.timesCalled >= this._invertedPromises.length) {
+        if (this.timesCalled >= this.promiseStub.length) {
             promise = Promise.reject(DONE);
         } else {
-            promise = this._invertedPromises[this.timesCalled].promise;
+            promise = this.promiseStub[this.timesCalled].promise;
             this.pendingPromises++;
             promise.then(decrementPending, decrementPending);
         }
@@ -61,22 +87,20 @@ class PromiseFactoryStub {
         return promise;        
     }
 
-    resolve(promiseIndex, value) {
-        if (typeof value === 'undefined') value = this.fulfilledValue(promiseIndex);
-        this._invertedPromises[promiseIndex].resolve(value);
+    resolve(promiseIndex) {
+        this.promiseStub[promiseIndex].resolve();
     }
 
     reject(promiseIndex, reason) {
-        if (typeof reason === 'undefined') reason = this.rejectedReason(promiseIndex);
-        this._invertedPromises[promiseIndex].reject(reason);
+        this.promiseStub[promiseIndex].reject();
     }
 
     resolveAll() {
-        this._invertedPromises.forEach((p, i) => p.resolve(this.fulfilledValue(i)));
+        this.promiseStub.forEach((_, i) => this.resolve(i));
     }
 
     rejectAll() {
-        this._invertedPromises.forEach((p, i) => p.reject(this.rejectedReason(i)));
+        this.promiseStub.forEach((_, i) => this.reject(i));
     }
 
     async expectTimesCalled(expectedNumberOfCalls) {
@@ -88,19 +112,11 @@ class PromiseFactoryStub {
         await nextTick();
         expect(this.pendingPromises).toBe(expectedNumberOfPendingPromises);
     }
-
-    fulfilledValue(promiseIndex) {
-        return `fulfilled[${promiseIndex}]`;
-    }
-
-    rejectedReason(promiseIndex) {
-        return `rejected[${promiseIndex}]`;
-    }
 }
 
 module.exports = {
-    createPendingPromiseArray,
-    InvertedPromise,
+    createPromiseStubArray,
+    PromiseStub,
     nextTick,
     expectFulfilled,
     expectRejected,

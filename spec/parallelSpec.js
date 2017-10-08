@@ -3,7 +3,7 @@
 const parallel = require('../lib/parallel');
 const {DONE} = require('../lib/base');
 const {AssertionError} = require('assert');
-const {expectFulfilled, expectRejected, PromiseFactoryStub} = require('./testUtils');
+const {expectRejected, PromiseFactoryStub} = require('./testUtils');
 
 describe('parallel promise factory', () => {
     describe('factory', () => {
@@ -26,9 +26,9 @@ describe('parallel promise factory', () => {
         const ppf = parallel(0, 1, upstream.promiseFactory);
 
         upstream.resolve(0);
-        await expectFulfilled(ppf(), upstream.fulfilledValue(0));
+        await upstream.promiseStub[0].wasFollowedBy(ppf());
         upstream.resolve(1);
-        await expectFulfilled(ppf(), upstream.fulfilledValue(1));
+        await upstream.promiseStub[1].wasFollowedBy(ppf());
         await expectRejected(ppf(), DONE);
     });
 
@@ -40,8 +40,8 @@ describe('parallel promise factory', () => {
         upstream.reject(0);
         upstream.resolve(1);
 
-        await expectRejected(ppf(), upstream.rejectedReason(0));
-        await expectFulfilled(ppf(), upstream.fulfilledValue(1));
+        await upstream.promiseStub[0].wasFollowedBy(ppf());
+        await upstream.promiseStub[1].wasFollowedBy(ppf());
     });
 
     it('does not execute upstream factory until called', async () => {
@@ -72,10 +72,10 @@ describe('parallel promise factory', () => {
         
         const ppf = parallel(2, 1, upstream.promiseFactory);
 
-        await expectFulfilled(ppf(), upstream.fulfilledValue(0));
+        await upstream.promiseStub[0].wasFollowedBy(ppf());
         await upstream.expectTimesCalled(3);
-        await expectFulfilled(ppf(), upstream.fulfilledValue(1));
-        await expectFulfilled(ppf(), upstream.fulfilledValue(2));
+        await upstream.promiseStub[1].wasFollowedBy(ppf());
+        await upstream.promiseStub[2].wasFollowedBy(ppf());
         await expectRejected(ppf(), DONE);
     });
 
@@ -87,9 +87,9 @@ describe('parallel promise factory', () => {
         
         const ppf = parallel(2, 1, upstream.promiseFactory);
 
-        await expectFulfilled(ppf(), upstream.fulfilledValue(0));
-        await expectRejected(ppf(), upstream.rejectedReason(1));
-        await expectFulfilled(ppf(), upstream.fulfilledValue(2));
+        await upstream.promiseStub[0].wasFollowedBy(ppf());
+        await upstream.promiseStub[1].wasFollowedBy(ppf());
+        await upstream.promiseStub[2].wasFollowedBy(ppf());
         await expectRejected(ppf(), DONE);
     });
 
@@ -101,7 +101,7 @@ describe('parallel promise factory', () => {
         const p = ppf();
         await upstream.expectTimesCalled(1);
         upstream.resolve(0);
-        await expectFulfilled(p, upstream.fulfilledValue(0));
+        await upstream.promiseStub[0].wasFollowedBy(p);
         await upstream.expectTimesCalled(2);
     });
 
@@ -113,7 +113,7 @@ describe('parallel promise factory', () => {
         const p = ppf();
         await upstream.expectTimesCalled(1);
         upstream.reject(0);
-        await expectRejected(p, upstream.rejectedReason(0));
+        await upstream.promiseStub[0].wasFollowedBy(p);
         await upstream.expectTimesCalled(2);
     });
 
@@ -156,8 +156,8 @@ describe('parallel promise factory', () => {
         const p0 = ppf();
         await upstream.expectTimesCalled(2);
         upstream.resolve(0);
-        await expectFulfilled(p0, upstream.fulfilledValue(0));
-        const p1 = ppf();
+        await upstream.promiseStub[0].wasFollowedBy(p0);
+        ppf();
         await upstream.expectTimesCalled(3);
     });
 
@@ -167,9 +167,9 @@ describe('parallel promise factory', () => {
 
         const ppf = parallel(2, 2, upstream.promiseFactory);
 
-        await expectFulfilled(ppf(), upstream.fulfilledValue(0));
+        await upstream.promiseStub[0].wasFollowedBy(ppf());
         await upstream.expectTimesCalled(3);
-        await expectFulfilled(ppf(), upstream.fulfilledValue(1));
+        await upstream.promiseStub[1].wasFollowedBy(ppf());
         await upstream.expectTimesCalled(4);
     });
 
@@ -183,8 +183,8 @@ describe('parallel promise factory', () => {
         await upstream.expectTimesCalled(2);
         upstream.resolve(0);
         upstream.resolve(1);
-        await expectFulfilled(p0, upstream.fulfilledValue(0));
-        await expectFulfilled(p1, upstream.fulfilledValue(1));
+        await upstream.promiseStub[0].wasFollowedBy(p0);
+        await upstream.promiseStub[1].wasFollowedBy(p1);
     });
 
     it('returns rejected promise if called in parallel beyond the limit', async () => {
@@ -196,7 +196,6 @@ describe('parallel promise factory', () => {
         const p1 = ppf();
         const p2 = ppf();
         await upstream.expectTimesCalled(2);
-        await expectRejected
         try {
             const v = await p2;
             fail(`expected error about too many parallel operations; got fulfilled ${String(v)}`);

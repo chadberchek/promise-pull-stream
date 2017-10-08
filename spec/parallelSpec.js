@@ -5,10 +5,6 @@ const {DONE} = require('../lib/base');
 const {AssertionError} = require('assert');
 const {expectFulfilled, expectRejected, PromiseFactoryStub} = require('./testUtils');
 
-process.on('unhandledRejection', (reason, p) => {
-    fail("Promise rejection not handled. Rejection reason: " + reason.toString());
-});
-
 describe('parallel promise factory', () => {
     describe('factory', () => {
         it('requires a non-negative buffer size', () => {

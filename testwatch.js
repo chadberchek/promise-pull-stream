@@ -7,7 +7,11 @@ runJasmine();
 
 fs.watch('./', { recursive: true }, runJasmine);
 
-function runJasmine() {
+function runJasmine(event, filename) {
+    if (filename && (
+        filename.startsWith('.git') ||
+        !filename.endsWith('.js'))) return;
+
     if (jasmineRunning) return;
 
     jasmineRunning = true;

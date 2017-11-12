@@ -1,6 +1,6 @@
 'use strict';
 
-const completedFirst = require('../lib/completedFirst');
+const completedFirst = require('../lib/completed-first');
 const {DONE} = require('../lib/base');
 const {rejected, PromiseFactoryStub} = require('./testUtils');
 

@@ -8,4 +8,5 @@ module.exports = {
     unparallel: require('./lib/unparallel'),
     pull: require('./lib/pull'),
     then: require('./lib/then'),
+    consume: require('./lib/consume'),
 };

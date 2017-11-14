@@ -9,4 +9,5 @@ module.exports = {
     pull: require('./lib/pull'),
     then: require('./lib/then'),
     consume: require('./lib/consume'),
+    catcher: require('./lib/catcher'),
 };

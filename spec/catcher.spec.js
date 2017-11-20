@@ -84,4 +84,12 @@ describe('catcher', () => {
         upstream.reject(0, 'a');
         expect(await rejected(c())).toBe('b');
     });
+
+    it('does not pass through the rejected promise regardless of the catcher function return value', async () => {
+        const upstream = new PromiseFactoryStub(1);
+        upstream.rejectAll();
+        const c = catcher(() => true)(upstream.promiseFactory);
+
+        expect(await rejected(c())).toBe(DONE);
+    });
 });

@@ -11,4 +11,5 @@ module.exports = {
     consume: require('./lib/consume'),
     catcher: require('./lib/catcher'),
     filter: require('./lib/filter'),
+    batch: require('./lib/batch'),
 };

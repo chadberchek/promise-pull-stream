@@ -12,4 +12,5 @@ module.exports = {
     catcher: require('./lib/catcher'),
     filter: require('./lib/filter'),
     batch: require('./lib/batch'),
+    partialPipe: require('./lib/partial-pipe'),
 };

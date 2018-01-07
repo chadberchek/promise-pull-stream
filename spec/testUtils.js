@@ -1,6 +1,7 @@
 'use strict';
 
 const {DONE} = require('../lib/base');
+const {promisify} = require('util');
 
 function createPendingPromiseArray(count) {
     const a = new Array(count);
@@ -19,6 +20,8 @@ class InvertedPromise {
     }
 }
 
+const nextTick = promisify(process.nextTick);
+
 async function expectNotFulfilled(promise) {
     let fulfilled = false;
     let fulfilledValue;
@@ -28,10 +31,6 @@ async function expectNotFulfilled(promise) {
     });
     await nextTick();
     if (fulfilled) fail(`Expected promise not to be fulfilled but fulfilled ${String(fulfilledValue)}`);
-}
-
-async function nextTick() {
-    await new Promise(resolve => process.nextTick(resolve));
 }
 
 async function rejected(promise) {

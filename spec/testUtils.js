@@ -19,6 +19,17 @@ class InvertedPromise {
     }
 }
 
+async function expectNotFulfilled(promise) {
+    let fulfilled = false;
+    let fulfilledValue;
+    promise.then(x => {
+        fulfilled = true;
+        fulfilledValue = x;
+    });
+    await nextTick();
+    if (fulfilled) fail(`Expected promise not to be fulfilled but fulfilled ${String(fulfilledValue)}`);
+}
+
 async function nextTick() {
     await new Promise(resolve => process.nextTick(resolve));
 }
@@ -88,5 +99,6 @@ module.exports = {
     InvertedPromise,
     nextTick,
     rejected,
-    PromiseFactoryStub
+    PromiseFactoryStub,
+    expectNotFulfilled,
 };

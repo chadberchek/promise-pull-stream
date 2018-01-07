@@ -13,4 +13,5 @@ module.exports = {
     filter: require('./lib/filter'),
     batch: require('./lib/batch'),
     partialPipe: require('./lib/partial-pipe'),
+    passThrough: require('./lib/pass-through'),
 };

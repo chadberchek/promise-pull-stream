@@ -8,15 +8,15 @@ const {rejected, PromiseFactoryStub} = require('./testUtils');
 describe('parallel promise factory', () => {
     describe('factory', () => {
         it('requires buffer at least 1 less than number of max parallel operations', () => {
-            parallel(0, 1, () => Promise.reject(DONE));
-            parallel(4, 3, () => Promise.reject(DONE));
+            parallel(1, 0, () => Promise.reject(DONE));
+            parallel(3, 4, () => Promise.reject(DONE));
             parallel(3, 3, () => Promise.reject(DONE));
-            parallel(2, 3, () => Promise.reject(DONE));
-            expect(() => parallel(1, 3, () => Promise.reject(DONE))).toThrowError(AssertionError);
+            parallel(3, 2, () => Promise.reject(DONE));
+            expect(() => parallel(3, 1, () => Promise.reject(DONE))).toThrowError(AssertionError);
         });
 
         it('requires positive max number of parallel operations', () => {
-            parallel(0, 1, () => Promise.reject(DONE));
+            parallel(1, 0, () => Promise.reject(DONE));
             parallel(5, 5, () => Promise.reject(DONE));
             expect(() => parallel(0, 0, () => Promise.reject(DONE))).toThrowError(AssertionError);
         });
@@ -25,7 +25,7 @@ describe('parallel promise factory', () => {
     it('returns promises that resolve when those returned by the upstream promise factory resolve', async () => {
         const upstream = new PromiseFactoryStub(2);
 
-        const ppf = parallel(0, 1)(upstream.promiseFactory);
+        const ppf = parallel(1, 0)(upstream.promiseFactory);
 
         upstream.resolve(0, 'a');
         expect(await ppf()).toBe('a');
@@ -37,7 +37,7 @@ describe('parallel promise factory', () => {
     it('continues working after an upstream promise is rejected', async () => {
         const upstream = new PromiseFactoryStub(2);
 
-        const ppf = parallel(0, 1)(upstream.promiseFactory);
+        const ppf = parallel(1, 0)(upstream.promiseFactory);
 
         upstream.reject(0, 'a');
         upstream.resolve(1, 'b');
@@ -50,7 +50,7 @@ describe('parallel promise factory', () => {
         const upstream = new PromiseFactoryStub(1);
         upstream.resolveAll();
 
-        const ppf = parallel(0, 1)(upstream.promiseFactory);
+        const ppf = parallel(1, 0)(upstream.promiseFactory);
 
         await upstream.expectTimesCalled(0);
         ppf();
@@ -62,7 +62,7 @@ describe('parallel promise factory', () => {
         upstream.resolveAll();
         const bufferSize = 2;
 
-        const ppf = parallel(bufferSize, 1)(upstream.promiseFactory);
+        const ppf = parallel(1, bufferSize)(upstream.promiseFactory);
 
         ppf();
         await upstream.expectTimesCalled(bufferSize + 1); // 1 is returned by the initial call
@@ -72,7 +72,7 @@ describe('parallel promise factory', () => {
         const upstream = new PromiseFactoryStub(3);
         upstream.resolveAll();
         
-        const ppf = parallel(2, 1)(upstream.promiseFactory);
+        const ppf = parallel(1, 2)(upstream.promiseFactory);
 
         expect(await ppf()).toBe(0);
         await upstream.expectTimesCalled(3);
@@ -87,7 +87,7 @@ describe('parallel promise factory', () => {
         upstream.reject(1, 'b');
         upstream.resolve(2, 'c');
         
-        const ppf = parallel(2, 1)(upstream.promiseFactory);
+        const ppf = parallel(1, 2)(upstream.promiseFactory);
 
         expect(await ppf()).toBe('a');
         expect(await rejected(ppf())).toBe('b');
@@ -123,7 +123,7 @@ describe('parallel promise factory', () => {
         const upstream = new PromiseFactoryStub(3);
         upstream.rejectAll();
 
-        const ppf = parallel(2, 1)(upstream.promiseFactory);
+        const ppf = parallel(1, 2)(upstream.promiseFactory);
 
         ppf();
         await upstream.expectTimesCalled(3);

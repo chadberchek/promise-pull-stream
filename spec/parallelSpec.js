@@ -215,4 +215,14 @@ describe('parallel promise factory', () => {
         expect(await ppf0()).toBe('a');
         expect(await ppf1()).toBe('b');
     });
+
+    it('defaults buffer size to number of parallel operations if only one argument given', async () => {
+        const upstream = new PromiseFactoryStub(3);
+        const ppf = parallel(2)(upstream.promiseFactory);
+
+        ppf(); // should start 2 ops; 1 promise returned and 1 in buffer
+        await upstream.expectTimesCalled(2);
+        upstream.resolveAll(); // should start another op to fill buffer of size 2
+        await upstream.expectTimesCalled(3);
+    }); 
 });

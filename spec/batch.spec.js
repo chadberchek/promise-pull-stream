@@ -2,7 +2,7 @@
 
 const batch = require('../lib/batch');
 const {DONE} = require('../lib/base');
-const {PromiseFactoryStub, rejected} = require('./testUtils');
+const {PromiseFactoryStub, rejected} = require('./test-utils');
 const {AssertionError} = require('assert');
 
 describe('batch', () => {

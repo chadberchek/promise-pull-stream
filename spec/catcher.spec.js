@@ -1,7 +1,7 @@
 'use strict';
 
 const {DONE} = require('../lib/base');
-const {PromiseFactoryStub, rejected, nextTick} = require('./testUtils');
+const {PromiseFactoryStub, rejected, nextTick} = require('./test-utils');
 const catcher = require('../lib/catcher');
 
 describe('catcher', () => {

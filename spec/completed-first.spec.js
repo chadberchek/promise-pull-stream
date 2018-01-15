@@ -2,7 +2,7 @@
 
 const completedFirst = require('../lib/completed-first');
 const {DONE} = require('../lib/base');
-const {rejected, PromiseFactoryStub} = require('./testUtils');
+const {rejected, PromiseFactoryStub} = require('./test-utils');
 
 describe('completedFirst', () => {
     it('passes fulfilled and rejected promises through', async () => {

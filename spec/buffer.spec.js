@@ -3,7 +3,7 @@
 const buffer = require('../lib/buffer');
 const {DONE} = require('../lib/base');
 const {AssertionError} = require('assert');
-const {rejected, PromiseFactoryStub} = require('./testUtils');
+const {rejected, PromiseFactoryStub} = require('./test-utils');
 
 describe('buffer', () => {
     it('requires buffer size greater than 0', () => {

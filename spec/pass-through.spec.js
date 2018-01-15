@@ -1,7 +1,7 @@
 'use strict';
 
 const passThrough = require('../lib/pass-through');
-const {PromiseFactoryStub, rejected, expectNotFulfilled} = require('./testUtils');
+const {PromiseFactoryStub, rejected, expectNotFulfilled} = require('./test-utils');
 
 describe('pass-through', () => {
     it('calls the handler with upstream fulfilled values', async () => {

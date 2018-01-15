@@ -2,7 +2,7 @@
 
 const {DONE} = require('../lib/base');
 const filter = require('../lib/filter');
-const {PromiseFactoryStub, rejected} = require('./testUtils');
+const {PromiseFactoryStub, rejected} = require('./test-utils');
 
 describe('filter', () => {
     it('passes through resolved promises when filter function truthy', async () => {

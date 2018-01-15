@@ -3,7 +3,7 @@
 const parallel = require('../lib/parallel');
 const {DONE} = require('../lib/base');
 const {AssertionError} = require('assert');
-const {rejected, PromiseFactoryStub} = require('./testUtils');
+const {rejected, PromiseFactoryStub} = require('./test-utils');
 
 describe('parallel promise factory', () => {
     describe('factory', () => {

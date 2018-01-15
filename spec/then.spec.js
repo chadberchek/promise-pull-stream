@@ -1,7 +1,7 @@
 'use strict';
 
 const then = require('../lib/then');
-const {PromiseFactoryStub, rejected, InvertedPromise} = require('./testUtils');
+const {PromiseFactoryStub, rejected, InvertedPromise} = require('./test-utils');
 
 describe('then', () => {
     it('calls upstream and adds handler on returned promise', async () => {

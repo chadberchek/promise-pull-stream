@@ -2,7 +2,7 @@
 
 const flatten = require('../lib/flatten-iterable');
 const {DONE} = require('../lib/base');
-const {PromiseFactoryStub, rejected} = require('./testUtils');
+const {PromiseFactoryStub, rejected} = require('./test-utils');
 
 describe('flatten-iterable', () => {
     it('returns elements from an array one at a time starting from index 0', async () => {

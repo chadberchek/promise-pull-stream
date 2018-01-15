@@ -2,7 +2,7 @@
 
 const limit = require('../lib/limit');
 const {DONE} = require('../lib/base');
-const {PromiseFactoryStub, rejected} = require('./testUtils');
+const {PromiseFactoryStub, rejected} = require('./test-utils');
 
 describe('limit', () => {
     it('only calls upstream specified number of times and then is DONE', async () => {

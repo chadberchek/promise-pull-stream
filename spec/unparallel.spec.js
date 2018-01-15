@@ -3,7 +3,7 @@
 const unparallel = require('../lib/unparallel');
 const {DONE} = require('../lib/base');
 const {AssertionError} = require('assert');
-const {rejected, PromiseFactoryStub} = require('./testUtils');
+const {rejected, PromiseFactoryStub} = require('./test-utils');
 
 describe('unparallel', () => {
     it('passes fulfilled and rejected promises through', async () => {

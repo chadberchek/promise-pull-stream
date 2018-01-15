@@ -2,7 +2,7 @@
 
 const consume = require('../lib/consume');
 const {DONE} = require('../lib/base');
-const {PromiseFactoryStub, nextTick, InvertedPromise, rejected} = require('./testUtils');
+const {PromiseFactoryStub, nextTick, InvertedPromise, rejected} = require('./test-utils');
 
 describe('consume', () => {
     it('invokes the promise factory sequentially until DONE', async () => {

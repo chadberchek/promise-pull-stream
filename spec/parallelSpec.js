@@ -7,15 +7,17 @@ const {rejected, PromiseFactoryStub} = require('./testUtils');
 
 describe('parallel promise factory', () => {
     describe('factory', () => {
-        it('requires a non-negative buffer size', () => {
+        it('requires buffer at least 1 less than number of max parallel operations', () => {
             parallel(0, 1, () => Promise.reject(DONE));
-            parallel(5, 1, () => Promise.reject(DONE));
-            expect(() => parallel(-1, 1, () => Promise.reject(DONE))).toThrowError(AssertionError);
+            parallel(4, 3, () => Promise.reject(DONE));
+            parallel(3, 3, () => Promise.reject(DONE));
+            parallel(2, 3, () => Promise.reject(DONE));
+            expect(() => parallel(1, 3, () => Promise.reject(DONE))).toThrowError(AssertionError);
         });
 
         it('requires positive max number of parallel operations', () => {
             parallel(0, 1, () => Promise.reject(DONE));
-            parallel(0, 5, () => Promise.reject(DONE));
+            parallel(5, 5, () => Promise.reject(DONE));
             expect(() => parallel(0, 0, () => Promise.reject(DONE))).toThrowError(AssertionError);
         });
     });

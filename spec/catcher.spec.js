@@ -1,7 +1,7 @@
 'use strict';
 
 const {DONE} = require('../lib/base');
-const {PromiseFactoryStub, rejected, nextTick} = require('./test-utils');
+const {PromiseFactoryStub, rejected, promiseHandlersCalled} = require('./test-utils');
 const catcher = require('../lib/catcher');
 
 describe('catcher', () => {
@@ -29,7 +29,7 @@ describe('catcher', () => {
         
         c().catch(r => expect(r).toBe(DONE));
         upstream.reject(0, 'a');
-        await nextTick();
+        await promiseHandlersCalled();
         expect(caughtValue).toBe('a');
     });
 
@@ -39,7 +39,7 @@ describe('catcher', () => {
 
         upstream.resolve(0, 'a');
         c();
-        await nextTick();
+        await promiseHandlersCalled();
     });
 
     it('does not call upstream promise factory until called', async () => {
@@ -50,7 +50,7 @@ describe('catcher', () => {
         c();
         expect(upstream.timesCalled).toBe(1);
         upstream.resolve(0, 'a');
-        await nextTick();
+        await promiseHandlersCalled();
         expect(upstream.timesCalled).toBe(1);
         c();
         expect(upstream.timesCalled).toBe(2);

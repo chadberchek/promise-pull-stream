@@ -198,8 +198,8 @@ describe('parallel promise factory', () => {
         const p0 = ppf();
         const p1 = ppf();
         const p2 = ppf();
-        await upstream.expectTimesCalled(2);
         expect(await rejected(p2)).toEqual(jasmine.any(AssertionError));
+        await upstream.expectTimesCalled(2);
     });
 
     it('multiple parallel factories are independent', async () => {

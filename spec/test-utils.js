@@ -22,7 +22,6 @@ function deferredStub(spy) {
     return deferrals;
 };
 
-const nextTick = promisify(process.nextTick);
 const promiseHandlersCalled = promisify(setImmediate);
 
 async function expectNotFulfilled(promise) {
@@ -32,7 +31,7 @@ async function expectNotFulfilled(promise) {
         fulfilled = true;
         fulfilledValue = x;
     });
-    await nextTick();
+    await promiseHandlersCalled();
     if (fulfilled) fail(`Expected promise not to be fulfilled but fulfilled ${String(fulfilledValue)}`);
 }
 
@@ -86,12 +85,12 @@ class PromiseFactoryStub {
     }
 
     async expectTimesCalled(expectedNumberOfCalls) {
-        await nextTick();
+        await promiseHandlersCalled();
         expect(this.timesCalled).toBe(expectedNumberOfCalls);
     }
 
     async expectPendingPromises(expectedNumberOfPendingPromises) {
-        await nextTick();
+        await promiseHandlersCalled();
         expect(this.pendingPromises).toBe(expectedNumberOfPendingPromises);
     }
 }
@@ -99,7 +98,6 @@ class PromiseFactoryStub {
 module.exports = {
     createPendingPromiseArray,
     deferredStub,
-    nextTick,
     rejected,
     PromiseFactoryStub,
     expectNotFulfilled,

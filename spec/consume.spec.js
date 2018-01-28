@@ -2,7 +2,7 @@
 
 const consume = require('../lib/consume');
 const {DONE} = require('../lib/base');
-const {PromiseFactoryStub, nextTick, rejected} = require('./test-utils');
+const {PromiseFactoryStub, promiseHandlersCalled, rejected} = require('./test-utils');
 const Deferred = require('../lib/deferred');
 
 describe('consume', () => {
@@ -13,10 +13,10 @@ describe('consume', () => {
 
         expect(upstream.timesCalled).toBe(1);
         upstream.resolve(0, 'a');
-        await nextTick();
+        await promiseHandlersCalled();
         expect(upstream.timesCalled).toBe(2);
         upstream.resolve(1, 'b');
-        await nextTick();
+        await promiseHandlersCalled();
         expect(upstream.timesCalled).toBe(3);
     });
 
@@ -29,7 +29,7 @@ describe('consume', () => {
             expect(x).toBeUndefined();
             consumePromiseFulfilled = true;    
         });
-        await nextTick();
+        await promiseHandlersCalled();
         expect(consumePromiseFulfilled).toBeFalsy();
         donePromise.reject(DONE);
         await p;

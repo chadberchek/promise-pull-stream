@@ -21,6 +21,7 @@ class InvertedPromise {
 }
 
 const nextTick = promisify(process.nextTick);
+const promiseHandlersCalled = promisify(setImmediate);
 
 async function expectNotFulfilled(promise) {
     let fulfilled = false;
@@ -100,4 +101,5 @@ module.exports = {
     rejected,
     PromiseFactoryStub,
     expectNotFulfilled,
+    promiseHandlersCalled,
 };

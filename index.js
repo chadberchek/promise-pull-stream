@@ -5,6 +5,7 @@ module.exports = {
     flattenIterable: require('./lib/flatten-iterable'),
     limit: require('./lib/limit'),
     parallel: require('./lib/parallel'),
+    parallelWrapper: require('./lib/parallel-wrapper'),
     unparallel: require('./lib/unparallel'),
     pull: require('./lib/pull'),
     then: require('./lib/then'),

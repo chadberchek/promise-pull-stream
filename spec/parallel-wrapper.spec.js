@@ -1,24 +1,8 @@
 'use strict';
 
-const {PromiseFactoryStub, promiseHandlersCalled, expectNotFulfilled} = require('./test-utils');
+const {PromiseFactoryStub, promiseHandlersCalled, expectNotFulfilled, Deferred} = require('./test-utils');
 const parallelWrapper = require('../lib/parallel-wrapper');
 const then = require('../lib/then');
-
-function Deferred() {
-    this.promise = new Promise((res, rej) => {
-        this.resolve = res;
-        this.reject = rej;
-    });
-}
-Deferred.stub = function(spy) {
-    const deferrals = [];
-    spy.and.callFake(() => {
-        const d = new Deferred();
-        deferrals.push(d);
-        return d.promise;
-    });
-    return deferrals;
-};
 
 describe('parallel wrapper', function() {
     beforeEach(function() {

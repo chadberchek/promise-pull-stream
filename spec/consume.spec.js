@@ -2,7 +2,7 @@
 
 const consume = require('../lib/consume');
 const {DONE} = require('../lib/base');
-const {PromiseFactoryStub, nextTick, InvertedPromise, rejected} = require('./test-utils');
+const {PromiseFactoryStub, nextTick, Deferred, rejected} = require('./test-utils');
 
 describe('consume', () => {
     it('invokes the promise factory sequentially until DONE', async () => {
@@ -20,7 +20,7 @@ describe('consume', () => {
     });
 
     it('returns a promise that is fulfilled when promise factory is done', async () => {
-        const donePromise = new InvertedPromise();
+        const donePromise = new Deferred();
         const pf = () => donePromise.promise;
 
         let consumePromiseFulfilled = false;

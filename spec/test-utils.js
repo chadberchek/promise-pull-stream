@@ -6,19 +6,26 @@ const {promisify} = require('util');
 function createPendingPromiseArray(count) {
     const a = new Array(count);
     for (let i = 0; i < count; i++) {
-        a[i] = new InvertedPromise();
+        a[i] = new Deferred();
     }
     return a;
 }
 
-class InvertedPromise {
-    constructor() {
-        this.promise = new Promise((res, rej) => {
-            this.resolve = res;
-            this.reject = rej;
-        });
-    }
+function Deferred() {
+    this.promise = new Promise((res, rej) => {
+        this.resolve = res;
+        this.reject = rej;
+    });
 }
+Deferred.stub = function(spy) {
+    const deferrals = [];
+    spy.and.callFake(() => {
+        const d = new Deferred();
+        deferrals.push(d);
+        return d.promise;
+    });
+    return deferrals;
+};
 
 const nextTick = promisify(process.nextTick);
 const promiseHandlersCalled = promisify(setImmediate);
@@ -45,7 +52,7 @@ async function rejected(promise) {
 
 class PromiseFactoryStub {
     constructor(numberOfPromisesToReturn) {
-        this._invertedPromises = createPendingPromiseArray(numberOfPromisesToReturn);
+        this._deferreds = createPendingPromiseArray(numberOfPromisesToReturn);
         this.timesCalled = 0;
         this.pendingPromises = 0;
         this.promiseFactory = () => this._promiseFactory();
@@ -55,10 +62,10 @@ class PromiseFactoryStub {
         const decrementPending = () => this.pendingPromises--;
 
         let promise;
-        if (this.timesCalled >= this._invertedPromises.length) {
+        if (this.timesCalled >= this._deferreds.length) {
             promise = Promise.reject(DONE);
         } else {
-            promise = this._invertedPromises[this.timesCalled].promise;
+            promise = this._deferreds[this.timesCalled].promise;
             this.pendingPromises++;
             promise.then(decrementPending, decrementPending);
         }
@@ -68,19 +75,19 @@ class PromiseFactoryStub {
     }
 
     resolve(promiseIndex, value) {
-        this._invertedPromises[promiseIndex].resolve(value);
+        this._deferreds[promiseIndex].resolve(value);
     }
 
     reject(promiseIndex, reason) {
-        this._invertedPromises[promiseIndex].reject(reason);
+        this._deferreds[promiseIndex].reject(reason);
     }
 
     resolveAll() {
-        this._invertedPromises.forEach((p, i) => p.resolve(i));
+        this._deferreds.forEach((p, i) => p.resolve(i));
     }
 
     rejectAll() {
-        this._invertedPromises.forEach((p, i) => p.reject(i));
+        this._deferreds.forEach((p, i) => p.reject(i));
     }
 
     async expectTimesCalled(expectedNumberOfCalls) {
@@ -96,7 +103,7 @@ class PromiseFactoryStub {
 
 module.exports = {
     createPendingPromiseArray,
-    InvertedPromise,
+    Deferred,
     nextTick,
     rejected,
     PromiseFactoryStub,

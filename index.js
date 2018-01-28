@@ -16,5 +16,6 @@ module.exports = {
     partialPipe: require('./lib/partial-pipe'),
     passThrough: require('./lib/pass-through'),
     ifWrapper: require('./lib/if-wrapper'),
+    identity: require('./lib/identity'),
     Deferred: require('./lib/deferred'),
 };

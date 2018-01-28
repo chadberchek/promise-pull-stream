@@ -1,6 +1,6 @@
 'use strict';
 
-const {PromiseFactoryStub, promiseHandlersCalled, expectNotFulfilled, Deferred} = require('./test-utils');
+const {PromiseFactoryStub, promiseHandlersCalled, expectNotFulfilled, deferredStub} = require('./test-utils');
 const parallelWrapper = require('../lib/parallel-wrapper');
 const then = require('../lib/then');
 
@@ -8,7 +8,7 @@ describe('parallel wrapper', function() {
     beforeEach(function() {
         this.setUpFixture = function(promiseFactoryStubCount, parallelWrapperParams) {
             this.throughSpy = jasmine.createSpy('throughSpy');
-            this.throughSpyDeferrals = Deferred.stub(this.throughSpy);
+            this.throughSpyDeferrals = deferredStub(this.throughSpy);
             this.promiseFactoryStub = new PromiseFactoryStub(promiseFactoryStubCount);
             const parallelThrough = parallelWrapper(parallelWrapperParams, then(this.throughSpy));
             this.stream = parallelThrough(this.promiseFactoryStub.promiseFactory);

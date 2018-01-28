@@ -2,6 +2,7 @@
 
 const {DONE} = require('../lib/base');
 const {promisify} = require('util');
+const Deferred = require('../lib/deferred');
 
 function createPendingPromiseArray(count) {
     const a = new Array(count);
@@ -11,13 +12,7 @@ function createPendingPromiseArray(count) {
     return a;
 }
 
-function Deferred() {
-    this.promise = new Promise((res, rej) => {
-        this.resolve = res;
-        this.reject = rej;
-    });
-}
-Deferred.stub = function(spy) {
+function deferredStub(spy) {
     const deferrals = [];
     spy.and.callFake(() => {
         const d = new Deferred();
@@ -103,7 +98,7 @@ class PromiseFactoryStub {
 
 module.exports = {
     createPendingPromiseArray,
-    Deferred,
+    deferredStub,
     nextTick,
     rejected,
     PromiseFactoryStub,

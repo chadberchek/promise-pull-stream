@@ -2,7 +2,8 @@
 
 const consume = require('../lib/consume');
 const {DONE} = require('../lib/base');
-const {PromiseFactoryStub, nextTick, Deferred, rejected} = require('./test-utils');
+const {PromiseFactoryStub, nextTick, rejected} = require('./test-utils');
+const Deferred = require('../lib/deferred');
 
 describe('consume', () => {
     it('invokes the promise factory sequentially until DONE', async () => {

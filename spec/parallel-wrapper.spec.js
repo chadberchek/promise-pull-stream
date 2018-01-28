@@ -114,4 +114,21 @@ describe('parallel wrapper', function() {
         promiseFactoryStub.resolve(0, 'St');
         expect(await stream()).toBe('Star');
     });
+
+    it('does not wrap upstream promises if not doing parallel', function() {
+        const upstreamPromise = new Promise(()=>{});
+        const parallelThrough = parallelWrapper({parallelOperations: 1}, up => () => {
+            expect(up()).toBe(upstreamPromise);
+            return new Promise(()=>{});
+        });
+        parallelThrough(() => upstreamPromise)();
+    });
+
+    it('does not wrap promises returned by through if not doing parallel', function() {
+        const throughPromise = new Promise(()=>{});
+        const parallelThrough = parallelWrapper({parallelOperations: 1, completedFirst: true},
+            up => () => throughPromise);
+        const stream = parallelThrough(() => Promise.resolve('a'));
+        expect(stream()).toBe(throughPromise);
+    });
 });

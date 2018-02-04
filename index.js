@@ -18,4 +18,5 @@ module.exports = {
     ifWrapper: require('./lib/if-wrapper'),
     identity: require('./lib/identity'),
     Deferred: require('./lib/deferred'),
+    tryMap: require('./lib/try-map'),
 };

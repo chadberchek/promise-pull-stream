@@ -105,6 +105,14 @@ describe('tryMap', function() {
         expect(await rejected(mapped())).toBe(3);
     });
 
+    it('calls catch function for last error after max tries', async function() {
+        const upstream = () => Promise.resolve();
+        const catcher = jasmine.createSpy('catcher');
+        const mapped = tryMap(_=> Promise.reject(), catcher, 1)(upstream);
+        await rejected(mapped());
+        expect(catcher).toHaveBeenCalledTimes(1);
+    });
+
     it('resets the error count after map function is called successfully', async function() {
         const upstream = new PromiseFactoryStub(4);
         upstream.resolveAll();

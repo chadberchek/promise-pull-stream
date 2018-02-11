@@ -42,20 +42,34 @@ describe('tryMap', function() {
 
     it('calls catch function if mapping function throws an exception', async function() {
         const upstream = new PromiseFactoryStub(1);
-        upstream.resolveAll();
-        let caughtValue;
-        const mapped = tryMap(_=> {throw 'b'}, e => {caughtValue = e})(upstream.promiseFactory);
+        upstream.resolve(0, 'a');
+        let caughtValue, upstreamValue;
+        const mapped = tryMap(
+            _=> {throw 'b'}, 
+            (e, v) => {
+                caughtValue = e;
+                upstreamValue = v;
+            }
+        )(upstream.promiseFactory);
         expect(await rejected(mapped())).toBe(DONE);
         expect(caughtValue).toBe('b');
+        expect(upstreamValue).toBe('a');
     });
 
     it('calls catch function if mapping function returns rejected promise', async function() {
         const upstream = new PromiseFactoryStub(1);
-        upstream.resolveAll();
-        let caughtValue;
-        const mapped = tryMap(_=> Promise.reject('b'), e => {caughtValue = e})(upstream.promiseFactory);
+        upstream.resolve(0, 'a');
+        let caughtValue, upstreamValue;
+        const mapped = tryMap(
+            _=> Promise.reject('b'),
+            (e, v) => {
+                caughtValue = e;
+                upstreamValue = v;
+            }
+        )(upstream.promiseFactory);
         expect(await rejected(mapped())).toBe(DONE);
         expect(caughtValue).toBe('b');
+        expect(upstreamValue).toBe('a');
     });
 
     it('calls upstream to get another value after catching', async function() {

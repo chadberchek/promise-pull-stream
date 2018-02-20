@@ -7,13 +7,13 @@ const {AssertionError} = require('assert');
 
 describe('batch', () => {
     it('requires a batch size greater than 0', () => {
-        expect(() => batch(0)).toThrowError(AssertionError);
-        expect(() => batch(-1)).toThrowError(AssertionError);
+        expect(() => batch({size: 0})).toThrowError(AssertionError);
+        expect(() => batch({size: -1})).toThrowError(AssertionError);
     });
 
     it('does not call upstream until called', async () => {
         const up = new PromiseFactoryStub(1);
-        const batched = batch(1)(up.promiseFactory);
+        const batched = batch({size: 1})(up.promiseFactory);
 
         await up.expectTimesCalled(0);
         batched();
@@ -23,14 +23,14 @@ describe('batch', () => {
     it('fulfills its promise only after batch size values have been collected', async () => {
         const up = new PromiseFactoryStub(3);        
         up.resolveAll();
-        const batched = batch(2)(up.promiseFactory);
+        const batched = batch({size: 2})(up.promiseFactory);
 
         expect(await batched()).toEqual([0, 1]);
     });
 
     it('calls upstream sequentially not in parallel', async () => {
         const up = new PromiseFactoryStub(2);
-        const batched = batch(2)(up.promiseFactory);
+        const batched = batch({size: 2})(up.promiseFactory);
 
         batched();
         await up.expectTimesCalled(1);
@@ -41,14 +41,14 @@ describe('batch', () => {
     it('fulfills its promise with the current batch when upstream DONE', async () => {
         const up = new PromiseFactoryStub(2);
         up.resolveAll();
-        const batched = batch(3)(up.promiseFactory);
+        const batched = batch({size: 3})(up.promiseFactory);
         
         expect(await batched()).toEqual([0, 1]);
     });
 
     it('rejects with DONE on next call after fulfilling partial batch when upstream DONE', async () => {
         const up = new PromiseFactoryStub(1);
-        const batched = batch(2)(up.promiseFactory);
+        const batched = batch({size: 2})(up.promiseFactory);
         up.resolve(0, 'a');
 
         expect(await batched()).toEqual(['a']);
@@ -58,7 +58,7 @@ describe('batch', () => {
     it('can produce multiple separate batches', async () => {
         const up = new PromiseFactoryStub(5);
         up.resolveAll();
-        const batched = batch(2)(up.promiseFactory);
+        const batched = batch({size: 2})(up.promiseFactory);
 
         expect(await batched()).toEqual([0, 1]);
         expect(await batched()).toEqual([2, 3]);
@@ -69,7 +69,7 @@ describe('batch', () => {
         const up0 = new PromiseFactoryStub(2);
         const up1 = new PromiseFactoryStub(2);
 
-        const batchByTwo = batch(2);
+        const batchByTwo = batch({size: 2});
         const b0 = batchByTwo(up0.promiseFactory);
         const b1 = batchByTwo(up1.promiseFactory);
 
@@ -86,7 +86,7 @@ describe('batch', () => {
 
     it('passes through DONE on first upstream call', async () => {
         const up = new PromiseFactoryStub(0);
-        const batched = batch(2)(up.promiseFactory);
+        const batched = batch({size: 2})(up.promiseFactory);
 
         expect(await rejected(batched())).toBe(DONE);
     });
@@ -94,7 +94,7 @@ describe('batch', () => {
     it('passes through DONE if current batch is empty', async () => {
         const up = new PromiseFactoryStub(2);
         up.resolveAll();
-        const batched = batch(2)(up.promiseFactory);
+        const batched = batch({size: 2})(up.promiseFactory);
 
         expect(await batched()).toEqual([0, 1]);
         expect(await rejected(batched())).toBe(DONE);
@@ -102,13 +102,13 @@ describe('batch', () => {
 
     it('passes through upstream rejected promise if batch is empty', async function() {
         const up = () => Promise.reject('x');
-        const batched = batch(2)(up);
+        const batched = batch({size: 2})(up);
         expect(await rejected(batched())).toBe('x');
     });
 
     it('flushes the batch when upstream rejected, then returns rejection on next call', async function() {
         const upstream = new PromiseFactoryStub(2);
-        const batched = batch(2)(upstream.promiseFactory);
+        const batched = batch({size: 2})(upstream.promiseFactory);
         upstream.resolve(0, 'a');
         upstream.reject(1, 'b');
         expect(await batched()).toEqual(['a']);
@@ -118,7 +118,7 @@ describe('batch', () => {
 
     it('rejection handling works when rejection reason is undefined', async function() {
         const upstream = new PromiseFactoryStub(2);
-        const batched = batch(2)(upstream.promiseFactory);
+        const batched = batch({size: 2})(upstream.promiseFactory);
         upstream.resolve(0, 'a');
         upstream.reject(1, undefined);
         expect(await batched()).toEqual(['a']);
@@ -127,7 +127,7 @@ describe('batch', () => {
     });
 
     it('keeps separate rejection handling state for multiple throughs from same factory', async function() {
-        const batcher = batch(2);
+        const batcher = batch({size: 2});
         const batched = batcher(() => Promise.resolve('x'));
 
         const otherUpstream = new PromiseFactoryStub(2);
@@ -142,7 +142,7 @@ describe('batch', () => {
     describe('retain on reject option', function() {
         it('passes through rejections other than DONE and continues building batch afterward', async function() {
             const up = new PromiseFactoryStub(5);
-            const batched = batch(3, true)(up.promiseFactory);
+            const batched = batch({size: 3, retainBatchOnRejection: true})(up.promiseFactory);
 
             up.resolve(0, 'a');
             up.reject(1, 'b');
@@ -157,7 +157,7 @@ describe('batch', () => {
 
         it('fulfills its promise with partial batch if last upstream before DONE was rejected', async function() {
             const up = new PromiseFactoryStub(3);
-            const batched = batch(3, true)(up.promiseFactory);
+            const batched = batch({size: 3, retainBatchOnRejection: true})(up.promiseFactory);
 
             up.resolve(0, 'a');
             up.resolve(1, 'b');

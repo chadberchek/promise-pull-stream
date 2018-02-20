@@ -100,31 +100,72 @@ describe('batch', () => {
         expect(await rejected(batched())).toBe(DONE);
     });
 
-    it('passes through rejections other than DONE and continues building batch afterward', async () => {
-        const up = new PromiseFactoryStub(5);
-        const batched = batch(3)(up.promiseFactory);
-
-        up.resolve(0, 'a');
-        up.reject(1, 'b');
-        up.resolve(2, 'c');
-        up.reject(3, 'd');
-        up.resolve(4, 'e');
-
-        expect(await rejected(batched())).toBe('b');
-        expect(await rejected(batched())).toBe('d');
-        expect(await batched()).toEqual(['a', 'c', 'e']);
+    it('passes through upstream rejected promise if batch is empty', async function() {
+        const up = () => Promise.reject('x');
+        const batched = batch(2)(up);
+        expect(await rejected(batched())).toBe('x');
     });
 
-    it('fulfills its promise with partial batch if last upstream before DONE was rejected', async () => {
-        const up = new PromiseFactoryStub(3);
-        const batched = batch(3)(up.promiseFactory);
-
-        up.resolve(0, 'a');
-        up.resolve(1, 'b');
-        up.reject(2, 'c');
-
-        expect(await rejected(batched())).toBe('c');
-        expect(await batched()).toEqual(['a', 'b']);
+    it('flushes the batch when upstream rejected, then returns rejection on next call', async function() {
+        const upstream = new PromiseFactoryStub(2);
+        const batched = batch(2)(upstream.promiseFactory);
+        upstream.resolve(0, 'a');
+        upstream.reject(1, 'b');
+        expect(await batched()).toEqual(['a']);
+        expect(await rejected(batched())).toBe('b');
         expect(await rejected(batched())).toBe(DONE);
+    });
+
+    it('rejection handling works when rejection reason is undefined', async function() {
+        const upstream = new PromiseFactoryStub(2);
+        const batched = batch(2)(upstream.promiseFactory);
+        upstream.resolve(0, 'a');
+        upstream.reject(1, undefined);
+        expect(await batched()).toEqual(['a']);
+        expect(await rejected(batched())).toBeUndefined();
+        expect(await rejected(batched())).toBe(DONE);
+    });
+
+    it('keeps separate rejection handling state for multiple throughs from same factory', async function() {
+        const batcher = batch(2);
+        const batched = batcher(() => Promise.resolve('x'));
+
+        const otherUpstream = new PromiseFactoryStub(2);
+        const otherBatched = batcher(otherUpstream.promiseFactory);
+        otherUpstream.resolve(0, 'a');
+        otherUpstream.reject(1, 'error in different stream');
+        expect(await otherBatched()).toEqual(['a']);
+        
+        expect(await batched()).toEqual(['x', 'x']);
+    });
+
+    describe('retain on reject option', function() {
+        it('passes through rejections other than DONE and continues building batch afterward', async function() {
+            const up = new PromiseFactoryStub(5);
+            const batched = batch(3, true)(up.promiseFactory);
+
+            up.resolve(0, 'a');
+            up.reject(1, 'b');
+            up.resolve(2, 'c');
+            up.reject(3, 'd');
+            up.resolve(4, 'e');
+
+            expect(await rejected(batched())).toBe('b');
+            expect(await rejected(batched())).toBe('d');
+            expect(await batched()).toEqual(['a', 'c', 'e']);
+        });
+
+        it('fulfills its promise with partial batch if last upstream before DONE was rejected', async function() {
+            const up = new PromiseFactoryStub(3);
+            const batched = batch(3, true)(up.promiseFactory);
+
+            up.resolve(0, 'a');
+            up.resolve(1, 'b');
+            up.reject(2, 'c');
+
+            expect(await rejected(batched())).toBe('c');
+            expect(await batched()).toEqual(['a', 'b']);
+            expect(await rejected(batched())).toBe(DONE);
+        });
     });
 });
